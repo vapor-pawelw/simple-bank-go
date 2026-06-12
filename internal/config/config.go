@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 )
 
@@ -9,16 +10,29 @@ type Config struct {
 	DatabaseURL string
 }
 
-func Load() Config {
-	return Config{
-		HTTPAddr:    getenv("HTTP_ADDR", ":8080"),
-		DatabaseURL: getenv("DATABASE_URL", "postgres://admin:admin@postgres:5432/simple_bank?sslmode=disable"),
+func Load() (Config, error) {
+	databaseURL, err := requiredEnv("DATABASE_URL")
+	if err != nil {
+		return Config{}, err
 	}
+
+	return Config{
+		HTTPAddr:    env("HTTP_ADDR", ":8080"),
+		DatabaseURL: databaseURL,
+	}, nil
 }
 
-func getenv(key, defaultValue string) string {
+func env(key, defaultValue string) string {
 	if value, exists := os.LookupEnv(key); exists && value != "" {
 		return value
 	}
 	return defaultValue
+}
+
+func requiredEnv(key string) (string, error) {
+	if value, exists := os.LookupEnv(key); exists && value != "" {
+		return value, nil
+	}
+
+	return "", fmt.Errorf("environment variable %s is required but not set", key)
 }

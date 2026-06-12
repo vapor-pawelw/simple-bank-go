@@ -14,7 +14,10 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	cfg := config.Load()
+	cfg, err := config.Load()
+	if err != nil {
+		log.Fatalf("Failed to load configuration: %v", err)
+	}
 
 	if err := app.Run(ctx, cfg); err != nil {
 		log.Fatalf("Server failed: %v", err)

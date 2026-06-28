@@ -5,19 +5,26 @@ import (
 	"os"
 )
 
+const (
+	envDatabaseURL = "DATABASE_URL"
+	envHTTPAddr    = "HTTP_ADDR"
+
+	defaultHTTPAddr = ":8080"
+)
+
 type Config struct {
 	HTTPAddr    string
 	DatabaseURL string
 }
 
 func Load() (Config, error) {
-	databaseURL, err := requiredEnv("DATABASE_URL")
+	databaseURL, err := requiredEnv(envDatabaseURL)
 	if err != nil {
 		return Config{}, err
 	}
 
 	return Config{
-		HTTPAddr:    env("HTTP_ADDR", ":8080"),
+		HTTPAddr:    env(envHTTPAddr, defaultHTTPAddr),
 		DatabaseURL: databaseURL,
 	}, nil
 }

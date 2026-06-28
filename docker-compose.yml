@@ -1,31 +1,64 @@
 services:
+  # Database
+
+  db:
+    image: postgres:18
+    container_name: db
+
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASS}
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
+    restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 2s
+      timeout: 5s
+      retries: 5
+
+  db_migrate:
+    image: golang:1.26-alpine
+    working_dir: /app
+    volumes:
+      - .:/app
+      - go_mod_cache:/go/pkg/mod
+    command: go tool goose up
+    environment:
+      GOOSE_DRIVER: postgres
+      GOOSE_DBSTRING: ${DATABASE_URL_DOCKER}
+      GOOSE_MIGRATION_DIR: ./migrations
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # App
+
   api:
     build:
       context: .
       dockerfile: Dockerfile
     image: simple_bank:1.0.0
     container_name: api
+    depends_on:
+      db_migrate:
+        condition: service_completed_successfully
 
     ports:
       - "8080:8080"
 
     environment:
       HTTP_ADDR: :8080
-      DATABASE_URL: postgres://admin:admin@postgres:5432/simple_bank?sslmode=disable
+      DATABASE_URL: ${DATABASE_URL_DOCKER}
 
-  postgres:
-    image: postgres:18
-    container_name: postgres
-
-    environment:
-      POSTGRES_DB: simple_bank
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin
-
-    volumes:
-      - postgres_data:/var/lib/postgresql
-
-    restart: unless-stopped
+  # Others
 
   redis:
     image: redis:8-alpine
@@ -57,3 +90,4 @@ volumes:
   postgres_data:
   redis_data:
   rabbitmq_data:
+  go_mod_cache:

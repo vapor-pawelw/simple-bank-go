@@ -16,10 +16,10 @@ func main() {
 
 	cfg, err := config.Load()
 	if err != nil {
-		log.Fatalf("Failed to load configuration: %v", err)
+		log.Fatalf("failed to load configuration: %v", err)
 	}
 
 	if err := app.Run(ctx, cfg); err != nil {
-		log.Fatalf("Server failed: %v", err)
+		log.Fatalf("server failed: %v", err)
 	}
 }

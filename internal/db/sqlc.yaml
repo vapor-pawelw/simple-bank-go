@@ -1,4 +1,5 @@
 version: "2"
+
 sql:
     - engine: "postgresql"
       schema: "migrations"
@@ -6,4 +7,5 @@ sql:
       gen:
         go:
             package: "db"
-            out: "internal/db/sqlc"
+            out: "generated"
+            sql_package: "pgx/v5"

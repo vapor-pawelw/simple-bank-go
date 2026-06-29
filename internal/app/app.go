@@ -6,11 +6,22 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgxpool"
+
 	"simple-bank/internal/config"
+	db "simple-bank/internal/db/generated"
 )
 
 func Run(ctx context.Context, cfg config.Config) error {
-	r := NewRouter()
+	pool, err := pgxpool.New(ctx, cfg.DatabaseURL)
+	if err != nil {
+		return err
+	}
+	defer pool.Close()
+
+	queries := db.New(pool)
+
+	r := NewRouter(queries)
 
 	srv := &http.Server{
 		Addr:              cfg.HTTPAddr,

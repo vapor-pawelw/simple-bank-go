@@ -26,6 +26,7 @@ services:
 
   db_migrate:
     image: golang:1.26-alpine
+    container_name: db_migrate
     working_dir: /app
     volumes:
       - .:/app
@@ -34,7 +35,7 @@ services:
     environment:
       GOOSE_DRIVER: postgres
       GOOSE_DBSTRING: ${DATABASE_URL_DOCKER}
-      GOOSE_MIGRATION_DIR: ./migrations
+      GOOSE_MIGRATION_DIR: ./internal/db/migrations
     depends_on:
       db:
         condition: service_healthy
